@@ -1,0 +1,31 @@
+services:
+  anxiety-api:
+    build: ./anxiety-api
+    volumes:
+      - ./anxiety-api/.env:/app/.env:ro
+      - ./anxiety-api/app/model:/app/model:ro
+    ports:
+      - "5000:5000"
+    environment:
+      GUNI_WORKERS: 1        
+      GUNI_TIMEOUT: 600
+    restart: unless-stopped
+
+  java-api:
+    build: ./java-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - anxiety-api
+    environment:
+      - PROTOTYPE_URL=http://anxiety-api:5000/api/process-video
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - java-api
+    restart: unless-stopped
